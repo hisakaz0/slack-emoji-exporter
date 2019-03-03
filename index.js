@@ -3,8 +3,28 @@ const Slack = require('slack-node');
 const request = require('request');
 const fs = require('fs');
 const path = require('path');
+const program = require('commander');
 
 require('dotenv').config();
+
+program
+  .command('update') // update emoji list
+  .option('-p, --path', 'Path to file of emoji list')
+  .action((path, cmd) => {
+    if (typeof cmd === 'undefined') cmd = path;
+    console.log('updat'); // TODO: replace with target func
+  });
+
+program
+  .command('download') // download emoji from list
+  .option('-d, --dir', "Path to directroy emoji is saved")
+  .action((dir, cmd) => {
+    if (typeof cmd === 'undefined') cmd = dir;
+    console.log('download');  // TODO: replace with target func
+  });
+
+program.parse(process.argv);
+
 
 const ErrorCode = {
   AUTH_ERROR: 1
@@ -59,4 +79,4 @@ const sleep = (milisecond) => new Promise((resolve, reject) => {
     setTimeout(() => resolve(), milisecond);
   });
 
-main();
+// main();

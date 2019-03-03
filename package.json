@@ -17,6 +17,7 @@
     "dotenv": "^6.1.0",
     "fs": "0.0.1-security",
     "path": "^0.12.7",
+    "queue": "^6.0.0",
     "request": "^2.88.0",
     "slack-node": "^0.1.8"
   }

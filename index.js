@@ -20,27 +20,34 @@ const getSlackInstance = () => {
   }
 }
 
-const main = () => {
+const main = async () => {
   const slack = getSlackInstance();
   if (slack === ErrorCode.AUTH_ERROR) return; // exit
 
-  saveEmojiList(slack, 'image');
+  await saveEmojiList(slack);
 };
 
-const saveEmojiList = (slack, outputDir = 'image') => slack.api("emoji.list",
+const saveEmojiList = (slack, listPath = 'emoji-list.json') => slack.api("emoji.list",
   async (err, response) => {
     if (!response.ok) {
       console.error(new Error("Invalid Authentication"));
       return ErrorCode.AUTH_ERROR;
     }
-    const images = Object.entries(response.emoji)
-      .filter(([, url]) => !url.match(/alias/))
-    for (let index = 0; index < images.length; index++) {
-      const [name, url] = images[index];
-      await sleep(SLEEP_TIME); // avoid timeout err
-      await saveImage(name, url, 'png', outputDir);
-      console.log(`${index} / ${images.length} / ${name}`);
-    }
+    fs.writeFile(listPath, JSON.stringify({
+      emoji: response.emoji,
+      updated: Date.now(),
+    }), (err) => {
+      if (err) throw err;
+      console.log(`The file has been saved: ${listPath}`);
+    });
+    // const images = Object.entries(response.emoji)
+    //   .filter(([, url]) => !url.match(/alias/))
+    // for (let index = 0; index < images.length; index++) {
+    //   const [name, url] = images[index];
+    //   await sleep(SLEEP_TIME); // avoid timeout err
+    //   await saveImage(name, url, 'png', outputDir);
+    //   console.log(`${index} / ${images.length} / ${name}`);
+    // }
   })
 
 const saveImage = (name, url, ext, outputDir) => request

@@ -1,18 +1,22 @@
 
-const Slack = require('slack-node');
 const request = require('request');
 const fs = require('fs');
 const path = require('path');
 const program = require('commander');
 
+const getSlackInstance = require('./src/getSlackInstance');
+const saveEmojiList = require('./src/saveEmojiList');
+
 require('dotenv').config();
+
+const DEF_EMOJI_PATH = 'emoji-list.json';
 
 program
   .command('update') // update emoji list
-  .option('-p, --path', 'Path to file of emoji list')
-  .action((path, cmd) => {
+  .option('-p, --path [file]', 'Path to file of emoji list', DEF_EMOJI_PATH)
+  .action(async (path, cmd) => {
     if (typeof cmd === 'undefined') cmd = path;
-    console.log('updat'); // TODO: replace with target func
+    saveEmojiList(await getSlackInstance(), cmd.path);
   });
 
 program
@@ -26,19 +30,8 @@ program
 program.parse(process.argv);
 
 
-const ErrorCode = {
-  AUTH_ERROR: 1
-};
 const SLEEP_TIME = 1000; // milisecond
 
-const getSlackInstance = () => {
-  try {
-    return new Slack(process.env.SLACK_API_TOKEN);
-  } catch(e) {
-    console.error(e);
-    return ErrorCode.AUTH_ERROR;
-  }
-}
 
 const main = async () => {
   const slack = getSlackInstance();
@@ -46,29 +39,6 @@ const main = async () => {
 
   await saveEmojiList(slack);
 };
-
-const saveEmojiList = (slack, listPath = 'emoji-list.json') => slack.api("emoji.list",
-  async (err, response) => {
-    if (!response.ok) {
-      console.error(new Error("Invalid Authentication"));
-      return ErrorCode.AUTH_ERROR;
-    }
-    fs.writeFile(listPath, JSON.stringify({
-      emoji: response.emoji,
-      updated: Date.now(),
-    }), (err) => {
-      if (err) throw err;
-      console.log(`The file has been saved: ${listPath}`);
-    });
-    // const images = Object.entries(response.emoji)
-    //   .filter(([, url]) => !url.match(/alias/))
-    // for (let index = 0; index < images.length; index++) {
-    //   const [name, url] = images[index];
-    //   await sleep(SLEEP_TIME); // avoid timeout err
-    //   await saveImage(name, url, 'png', outputDir);
-    //   console.log(`${index} / ${images.length} / ${name}`);
-    // }
-  })
 
 const saveImage = (name, url, ext, outputDir) => request
     .get(url)

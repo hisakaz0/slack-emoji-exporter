@@ -1,9 +1,9 @@
 
 const Slack = require('slack-node');
 
-module.exports = () => {
+module.exports = (token) => {
   try {
-    return Promise.resolve(new Slack(process.env.SLACK_API_TOKEN));
+    return Promise.resolve(new Slack(token));
   } catch(e) {
     return Promise.reject(e);
   }
